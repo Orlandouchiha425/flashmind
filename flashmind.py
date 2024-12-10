@@ -3,11 +3,9 @@ Date written: 12/8/24
 Assignment:   Final Project Progress report
 Short Desc:   This will quiz students and allow them to insert "flash cards" """
 
-
 import tkinter as tk
 from tkinter import messagebox
 import random
-import time
 
 
 class FlashMindApp:
@@ -15,12 +13,23 @@ class FlashMindApp:
         self.root = root
         self.root.title("FlashMind - Study Flashcards")
 
-        # Initialize flashcards list
-        self.flashcards = []
+        # Set app background color
+        # self.root.configure(bg="gainsboro")
 
-        # Timer variables
-        self.start_time = None
-        self.time_left = 60  # Timer for 1 minute
+        # Initialize flashcards list with hardcoded examples
+        self.flashcards = [
+            {"title": "What is the total of print(1+1)?", "notes": "2"},
+            {"title": "What is the result of  var1 = 1\nvar2 = 2\nvar3 = \"3\"\n\nprint(var1 + var2 + var3)",
+             "notes": "Error"},
+            {"title": "is this a test?", "notes": "yes"},
+            {"title": "salary = 8000\n\n\ndef printSalary():\n    salary = 12000\n    print(\"Salary:\", salary)\n\n\nprintSalary()\nprint(\"Salary:\", salary)",
+             "notes": "Salary: 12000\nSalary: 8000"}
+        ]
+
+        # Quiz variables
+        self.quiz_questions = []
+        self.current_index = 0
+        self.correct_answers = 0
 
         # Create the home screen
         self.create_home_screen()
@@ -30,15 +39,19 @@ class FlashMindApp:
         self.clear_screen()
 
         tk.Label(self.root, text="Welcome to FlashMind!",
-                 font=("Arial", 24)).pack(pady=20)
+                 font=("Arial", 24), bg="#f0f8ff").pack(pady=20)
 
-        tk.Button(self.root, text="Create Flashcards",
-                  command=self.create_flashcard_screen).pack(pady=10)
-        tk.Button(self.root, text="Take Quiz",
-                  command=self.quiz_screen).pack(pady=10)
-        tk.Button(self.root, text="View Flashcards",
-                  command=self.view_flashcards_screen).pack(pady=10)
-        tk.Button(self.root, text="Exit", command=self.root.quit).pack(pady=10)
+        tk.Button(self.root, text="Create Flashcards", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.create_flashcard_screen).pack(pady=10)
+
+        tk.Button(self.root, text="Take Quiz", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.quiz_screen).pack(pady=10)
+
+        tk.Button(self.root, text="View Flashcards", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.view_flashcards_screen).pack(pady=10)
+
+        tk.Button(self.root, text="Exit", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.root.quit).pack(pady=10)
 
     def clear_screen(self):
         """Clear the screen before displaying a new screen."""
@@ -50,23 +63,30 @@ class FlashMindApp:
         self.clear_screen()
 
         tk.Label(self.root, text="Create a New Flashcard",
-                 font=("Arial", 18)).pack(pady=20)
+                 font=("Arial", 18), bg="#f0f8ff").pack(pady=20)
 
         # Entry for card title
-        tk.Label(self.root, text="Flashcard Title:").pack(pady=5)
+        tk.Label(self.root, text="Flashcard Title:",
+                 bg="#f0f8ff", font=("Arial", 12)).pack(pady=5)
         self.card_title = tk.Entry(self.root, width=50)
         self.card_title.pack(pady=5)
 
         # Entry for card notes
-        tk.Label(self.root, text="Flashcard Notes:").pack(pady=5)
+        tk.Label(self.root, text="Flashcard Notes:",
+                 bg="#f0f8ff", font=("Arial", 12)).pack(pady=5)
         self.card_notes = tk.Entry(self.root, width=50)
         self.card_notes.pack(pady=5)
 
         # Save button
-        tk.Button(self.root, text="Save Flashcard",
-                  command=self.save_flashcard).pack(pady=10)
-        tk.Button(self.root, text="Back to Home",
-                  command=self.create_home_screen).pack(pady=10)
+        save_button = tk.Button(self.root, text="Save Flashcard", bg='blue', fg='black',
+                                font=("Arial", 12), command=self.save_flashcard)
+        save_button.pack(pady=10)
+
+        # Bind Enter key to Save Flashcard action
+        self.root.bind('<Return>', lambda event: self.save_flashcard())
+
+        tk.Button(self.root, text="Back to Home", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.create_home_screen).pack(pady=10)
 
     def save_flashcard(self):
         """Save the flashcard details."""
@@ -90,7 +110,7 @@ class FlashMindApp:
         self.clear_screen()
 
         tk.Label(self.root, text="Your Flashcards",
-                 font=("Arial", 18)).pack(pady=20)
+                 font=("Arial", 18), bg="#f0f8ff").pack(pady=20)
 
         # Listbox to show flashcards
         self.flashcard_listbox = tk.Listbox(self.root, width=50, height=10)
@@ -101,83 +121,72 @@ class FlashMindApp:
             self.flashcard_listbox.insert(tk.END, card["title"])
 
         # Back button
-        tk.Button(self.root, text="Back to Home",
-                  command=self.create_home_screen).pack(pady=10)
+        tk.Button(self.root, text="Back to Home", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.create_home_screen).pack(pady=10)
 
     def quiz_screen(self):
-        """Quiz screen with random flashcards."""
+        """Start the quiz with random flashcards."""
         self.clear_screen()
 
-        # Quiz title
-        tk.Label(self.root, text="Quiz Time!",
-                 font=("Arial", 18)).pack(pady=20)
-
-        # Timer display
-        self.timer_label = tk.Label(
-            self.root, text=f"Time Left: {self.time_left}s", font=("Arial", 14))
-        self.timer_label.pack(pady=10)
-
-        # Select a random flashcard
         if self.flashcards:
-            self.current_card = random.choice(self.flashcards)
-            question = self.current_card["title"]
-            self.correct_answer = self.current_card["notes"]
+            self.quiz_questions = random.sample(
+                self.flashcards, len(self.flashcards))
+            self.current_index = 0
+            self.correct_answers = 0
+            self.display_next_question()
+        else:
+            tk.Label(self.root, text="No flashcards available for the quiz.", font=(
+                "Arial", 14), bg="#f0f8ff").pack(pady=20)
+            tk.Button(self.root, text="Back to Home", bg='blue', fg='black',
+                      font=("Arial", 12), command=self.create_home_screen).pack(pady=10)
 
-            tk.Label(self.root, text=f"Question: {question}", font=(
-                "Arial", 14)).pack(pady=10)
+    def display_next_question(self):
+        """Display the next question in the quiz."""
+        if self.current_index < len(self.quiz_questions):
+            question = self.quiz_questions[self.current_index]["title"]
+            self.correct_answer = self.quiz_questions[self.current_index]["notes"]
 
-            # Entry for user answer
+            self.clear_screen()
+
+            tk.Label(self.root, text=f"Question {self.current_index + 1}: {question}",
+                     font=("Arial", 14), bg="#f0f8ff").pack(pady=20)
+
             self.user_answer = tk.Entry(self.root, width=50)
             self.user_answer.pack(pady=5)
 
-            # Button to submit the answer
-            tk.Button(self.root, text="Submit Answer",
-                      command=self.submit_answer).pack(pady=10)
+            submit_button = tk.Button(self.root, text="Submit Answer", bg='blue', fg='black',
+                                      font=("Arial", 12), command=self.submit_answer)
+            submit_button.pack(pady=10)
 
-            # Start the timer when the quiz starts
-            self.start_timer()
-
-            # Back button
-            tk.Button(self.root, text="Back to Home",
-                      command=self.create_home_screen).pack(pady=10)
+            # Bind Enter key to Submit Answer action
+            self.root.bind('<Return>', lambda event: self.submit_answer())
         else:
-            tk.Label(self.root, text="No flashcards available for the quiz.", font=(
-                "Arial", 14)).pack(pady=20)
-            tk.Button(self.root, text="Back to Home",
-                      command=self.create_home_screen).pack(pady=10)
-
-    def start_timer(self):
-        """Start the timer for the quiz."""
-        self.start_time = time.time()
-        self.update_timer()
-
-    def update_timer(self):
-        """Update the timer display."""
-        if self.start_time:
-            elapsed_time = int(time.time() - self.start_time)
-            remaining_time = max(self.time_left - elapsed_time, 0)
-
-            # Update timer label
-            self.timer_label.config(text=f"Time Left: {remaining_time}s")
-
-            if remaining_time > 0:
-                self.root.after(1000, self.update_timer)  # Update every second
-            else:
-                messagebox.showinfo("Time's Up!", "Your time is up!")
-                self.submit_answer()
+            self.show_score()
 
     def submit_answer(self):
-        """Check if the user's answer is correct."""
+        """Submit the user's answer for the current question."""
         user_answer = self.user_answer.get().strip()
 
         if user_answer.lower() == self.correct_answer.lower():
-            messagebox.showinfo("Correct!", "You got it right!")
-        else:
-            messagebox.showerror(
-                "Incorrect", f"Wrong answer! The correct answer was: {self.correct_answer}")
+            self.correct_answers += 1
 
-        # Return to the quiz screen for next question or back to home
-        self.quiz_screen()
+        self.current_index += 1
+        self.display_next_question()
+
+    def show_score(self):
+        """Display the final score after the quiz ends."""
+        self.clear_screen()
+
+        total_questions = len(self.quiz_questions)
+        score_percentage = (self.correct_answers / total_questions) * 100
+
+        tk.Label(self.root, text=f"Quiz Complete!", font=(
+            "Arial", 18), bg="#f0f8ff").pack(pady=20)
+        tk.Label(self.root, text=f"Your Score: {self.correct_answers}/{total_questions} ({score_percentage:.2f}%)",
+                 font=("Arial", 14), bg="#f0f8ff").pack(pady=10)
+
+        tk.Button(self.root, text="Back to Home", bg='blue', fg='black',
+                  font=("Arial", 12), command=self.create_home_screen).pack(pady=10)
 
 
 # Running the app
