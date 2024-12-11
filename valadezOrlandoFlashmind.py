@@ -22,7 +22,7 @@ class FlashMindApp:
             {"title": "What is the result of  var1 = 1\nvar2 = 2\nvar3 = \"3\"\n\nprint(var1 + var2 + var3)",
              "notes": "Error"},
             {"title": "is this a test?", "notes": "yes"},
-            {"title": "salary = 8000\n\n\ndef printSalary():\n    salary = 12000\n    print(\"Salary:\", salary)\n\n\nprintSalary()\nprint(\"Salary:\", salary)",
+            {"title": "What is the result of salary = 8000\n\n\ndef printSalary():\n    salary = 12000\n    print(\"Salary:\", salary)\n\n\nprintSalary()\nprint(\"Salary:\", salary)",
              "notes": "Salary: 12000\nSalary: 8000"}
         ]
 
